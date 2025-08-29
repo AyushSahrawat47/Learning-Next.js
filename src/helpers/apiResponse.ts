@@ -1,4 +1,4 @@
-export function errorResponse(message:string, status:number = 500){
+export function errorResponse(message:any, status:number = 500){
     return Response.json({
         success:false,
         message

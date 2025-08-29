@@ -1,6 +1,7 @@
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/User.model";
 import bcrypt from "bcryptjs";
+import {errorResponse, successResponse} from '@/helpers/apiResponse'
 
 import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
 
@@ -16,15 +17,16 @@ export async function POST(request: Request) {
     });
 
     if (existingUserVerifiedByUsername) {
-      return Response.json(
-        {
-          success: false,
-          message: "Username already taken",
-        },
-        {
-          status: 400,
-        }
-      );
+        return errorResponse("Username already taken0", 400);
+    //   return Response.json(
+    //     {
+    //       success: false,
+    //       message: "Username already taken",
+    //     },
+    //     {
+    //       status: 400,
+    //     }
+    //   );
     }
 
     const existingUserByEmail = await UserModel.findOne({ email });
@@ -32,10 +34,11 @@ export async function POST(request: Request) {
 
     if (existingUserByEmail) {
       if(existingUserByEmail.isVerified){
-        return Response.json({
-            success:false,
-            message: "User already exists!"
-        }, {status: 400});
+        return errorResponse("User already exists", 400)
+        // return Response.json({
+        //     success:false,
+        //     message: "User already exists!"
+        // }, {status: 400});
       }else{
         const hashedPassword = await bcrypt.hash(password,10);
         existingUserByEmail.password = hashedPassword;
@@ -69,28 +72,31 @@ export async function POST(request: Request) {
     const emailResponse = await sendVerificationEmail(email, username, verifyCode)
 
     if(!emailResponse.success){
-        return Response.json({
-            success:false,
-            message:emailResponse.message
-        }, {status:500})
+        return errorResponse(emailResponse.message)
+        // return Response.json({
+        //     success:false,
+        //     message:emailResponse.message
+        // }, {status:500})
     }
 
-    return Response.json({
-        success:true,
-        message: 'User registered successfully. Please verify your email'
-    }, {status:201})
+    return successResponse("registered successfully. Please verify your email", 201)
+    // return Response.json({
+    //     success:true,
+    //     message: 'User registered successfully. Please verify your email'
+    // }, {status:201})
 
 
   } catch (err) {
     console.error("Error registering user", err);
-    return Response.json(
-      {
-        success: false,
-        message: "Error registering user",
-      },
-      {
-        status: 500,
-      }
-    );
+    return errorResponse('Error registering user')
+    // return Response.json(
+    //   {
+    //     success: false,
+    //     message: "Error registering user",
+    //   },
+    //   {
+    //     status: 500,
+    //   }
+    // );
   }
 }
